@@ -19,10 +19,15 @@ async def main():
         state = 1
         while state:
             state = env.state
-            print(state)
+            # print(state)
             move = choose_move(state.getAvailableMoves())
-            await env.make_move(move)
+            # await asyncio.sleep(5)
+            reward = await env.make_move(move)
             next_state = env.state
+            print(state.getState())
+            print(move)
+            print(next_state.getState() if next_state else '')
+            print(reward)
             state = next_state
 
 if __name__ == "__main__":

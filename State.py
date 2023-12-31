@@ -1,4 +1,5 @@
 from Pokemon import Pokemon
+import json
 
 class State:
     def __init__(self):
@@ -21,6 +22,14 @@ class State:
 
         self.parsableChanges = ['switch','move','-damage','-heal','faint','-status','-curestatus','-cureteam','-transform','-boost','-unboost',]
 
+        with open('moves.json', 'r') as f:
+            self.moveCode = json.load(f)
+        with open('status.json', 'r') as f:
+            self.statusCode = json.load(f)
+        with open('pokemons.json', 'r') as f:
+            self.pokemonCode = json.load(f)
+
+    # parse changes to own team based on json
     def updateSelf(self,json):
         #print(json)
         #print(json['side'])
@@ -49,6 +58,7 @@ class State:
             self.disabled[3] = True if len(json['active'][0]['moves']) <= 3 else json['active'][0]['moves'][3]['disabled']
             self.trapped = 'trapped' in json['active'][0]
 
+    # parse chanages based on text update
     def parseChange(self,change,name):
         # print(change)
         for line in change:
@@ -82,7 +92,7 @@ class State:
                             self.enemyStatBoost = [0, 0, 0, 0]
                             inInfo = parts[2].split(',')
                             inPokemon = inInfo[0]
-                            inLevel = 100 if len(inInfo)==1 else inInfo[1].translate(str.maketrans('', '', 'L '))
+                            inLevel = 100 if len(inInfo)==1 else int(inInfo[1].translate(str.maketrans('', '', 'L ')))
                             self.enemyActive = 0
                             for pk in self.enemyTeam:
                                 if pk.specie == inPokemon:
@@ -194,6 +204,7 @@ class State:
                     case _:
                         pass
 
+    # get list of valid moves (as list of 0,1)
     def getAvailableMoves(self):
         validMoves = [0 for _ in range(10)]
         for i in range(4):
@@ -215,3 +226,58 @@ class State:
                         + '\n' + self.enemyTeam[0].__str__() + '\n' + self.enemyTeam[1].__str__() + '\n' + self.enemyTeam[2].__str__() + '\n' + self.enemyTeam[3].__str__()\
                             + '\n' + self.enemyTeam[4].__str__() + '\n' + self.enemyTeam[5].__str__() + '\nEnemy Active: ' + str(self.enemyActive) + '\nEnemy Transform: ' + str(self.enemyTransform)\
                                 + '\nEnemy Stats: ' + str(self.enemyStatBoost[0]) + ':' + str(self.enemyStatBoost[1]) + ':' + str(self.enemyStatBoost[2]) + ':' + str(self.enemyStatBoost[3])
+    
+    def getPokemonCode(self, pokemon):
+        try:
+            return self.pokemonCode.index(pokemon)
+        except:
+            self.pokemonCode.append(pokemon)
+            with open('pokemons.json', 'w') as f:
+                json.dump(self.pokemonCode, f)
+            return self.pokemonCode.index(pokemon)
+
+    def getStatusCode(self,status):
+        try:
+            return self.statusCode.index(status)
+        except:
+            self.statusCode.append(status)
+            with open('status.json', 'w') as f:
+                json.dump(self.statusCode, f)
+            return self.statusCode.index(status)
+    
+    def getMoveCode(self,move):
+        try:
+            return self.moveCode.index(move)
+        except:
+            self.moveCode.append(move)
+            with open('moves.json', 'w') as f:
+                json.dump(self.moveCode, f)
+            return self.moveCode.index(move)
+
+    def getPokemonState(self, pokemon):
+        return [self.getPokemonCode(pokemon.specie), pokemon.level, pokemon.health, \
+                self.getStatusCode(pokemon.status),self.getMoveCode(pokemon.moves[0]), self.getMoveCode(pokemon.moves[1]), \
+                self.getMoveCode(pokemon.moves[2]), self.getMoveCode(pokemon.moves[3]), pokemon.atk, pokemon.defe,
+                pokemon.spa, pokemon.spd, pokemon.spe]
+
+    def getState(self):
+        selfActiveNumber = self.ownActive if self.ownTransform == -1 else self.ownTransform
+        enemyActiveNumber = self.enemyActive if self.enemyTransform == -1 else self.enemyTransform
+
+        return [self.getPokemonState(self.ownTeam[selfActiveNumber]),
+                self.getPokemonState(self.enemyTeam[enemyActiveNumber]),
+                self.getPokemonState(self.ownTeam[0]),
+                self.getPokemonState(self.ownTeam[1]),
+                self.getPokemonState(self.ownTeam[2]),
+                self.getPokemonState(self.ownTeam[3]),
+                self.getPokemonState(self.ownTeam[4]),
+                self.getPokemonState(self.ownTeam[5]),
+                self.getPokemonState(self.enemyTeam[0]),
+                self.getPokemonState(self.enemyTeam[1]),
+                self.getPokemonState(self.enemyTeam[2]),
+                self.getPokemonState(self.enemyTeam[3]),
+                self.getPokemonState(self.enemyTeam[4]),
+                self.getPokemonState(self.enemyTeam[5]),
+                self.ownStatBoost,
+                self.enemyStatBoost
+                ]

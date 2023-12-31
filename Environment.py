@@ -84,9 +84,10 @@ class Environment:
             if greeting.startswith('>battle'):
                 lines = greeting.split('\n')[1:]
                 if lines[-1].startswith('|win|'):
+                    print(self.username,greeting,lines[-1])
                     self.game_name = None
                     self.state = None
-                    return 0
+                    return 1 if self.username.strip() in lines[-1] else -1
                 if lines[0].startswith('|request|') and lines[0] != '|request|': # request for move
                     self.state.updateSelf(json.loads(lines[0][9:]))
                     receivedRequest = True
@@ -94,4 +95,4 @@ class Environment:
                     self.state.parseChange(lines,self.username.strip())
                     receivedChange = True
                 if receivedRequest and receivedChange:
-                    return 1
+                    return 0

@@ -50,7 +50,7 @@ class Environment:
         await self.websocket.send('|/challenge {}, gen1randombattle'.format(user))
         while True:
             greeting = await self.websocket.recv()
-            # print(f'<<< {greeting}')
+            print(f'<<< {greeting}')
             if greeting.startswith('|updatesearch|'):
                 s = json.loads(greeting[14:])
                 if s['games']: # this will exist if there is a game going on

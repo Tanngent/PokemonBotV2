@@ -1,5 +1,6 @@
 from Pokemon import Pokemon
 import json
+import numpy as np
 
 class State:
     def __init__(self):
@@ -264,7 +265,7 @@ class State:
         selfActiveNumber = self.ownActive if self.ownTransform == -1 else self.ownTransform
         enemyActiveNumber = self.enemyActive if self.enemyTransform == -1 else self.enemyTransform
 
-        return [self.getPokemonState(self.ownTeam[selfActiveNumber]),
+        return np.concatenate([self.getPokemonState(self.ownTeam[selfActiveNumber]),
                 self.getPokemonState(self.enemyTeam[enemyActiveNumber]),
                 self.getPokemonState(self.ownTeam[0]),
                 self.getPokemonState(self.ownTeam[1]),
@@ -280,4 +281,4 @@ class State:
                 self.getPokemonState(self.enemyTeam[5]),
                 self.ownStatBoost,
                 self.enemyStatBoost
-                ]
+                ],axis=None)
